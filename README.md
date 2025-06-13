@@ -1,4 +1,5 @@
 Food Tracker AI 🥗
+
 Replace "YOUR ID" with your actual id in Clarifai.js, Index.html, Script.js.
 
 A smart nutrition tracking application that leverages artificial intelligence to simplify food logging. Users can upload an image of their meal, and the app will automatically identify the food and fetch its detailed nutritional information.
