@@ -1,0 +1,173 @@
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', sans-serif;
+  background-color: #121212; /* Dark grey instead of pure black */
+  color: #E0E0E0; /* Light grey text (softer than gold) */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 1rem 0;
+}
+
+.container {
+  background-color: #1E1E1E; /* Dark grey container */
+  padding: 2rem;
+  border-radius: 1rem;
+  text-align: center;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 0 15px rgba(255, 215, 0, 0.3); /* Subtle gold glow */
+  border: 1px solid #424242; /* Grey border */
+}
+
+h1 {
+  color: #FFD700; /* Gold color for title */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+input, button, select {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  margin: 0.5rem 0;
+  padding: 0.8rem;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+}
+
+input, select {
+  background-color: #2D2D2D; /* Dark grey input */
+  color: #E0E0E0; /* Light grey text */
+  border: 1px solid #424242; /* Grey border */
+}
+
+button {
+  background-color: #607D8B; /* Blue-grey primary (replaces gold) */
+  color: #FFFFFF; /* White text */
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+button:hover {
+  background-color: #78909C; /* Lighter blue-grey hover */
+}
+
+#status, #result {
+  margin-top: 1rem;
+  color: #E0E0E0;
+  min-height: 2em;
+  text-align: center;
+}
+
+.info-text {
+  color: #ff7043; /* Red-orange from screenshot */
+  font-style: italic;
+  font-size: 0.9rem;
+}
+
+/* Custom File Input */
+.file-input-container {
+  background-color: #2D2D2D;
+  border: 1px solid #424242;
+  border-radius: 0.5rem;
+  padding: 0.2rem;
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  gap: 0.5rem;
+}
+input[type="file"] {
+  display: none;
+}
+.btn-file {
+  background-color: #4A4A4A;
+  color: #E0E0E0;
+  padding: 0.6rem 1rem;
+  border-radius: 0.4rem;
+  cursor: pointer;
+  text-align: center;
+  flex-shrink: 0;
+  margin: 0;
+}
+.btn-file:hover {
+  background-color: #5a5a5a;
+}
+#file-chosen-text {
+  padding-left: 0.8rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #cccccc;
+  flex-grow: 1;
+  text-align: left;
+}
+
+/* MODIFIED: Image Preview */
+#imagePreviewContainer {
+  margin: 1rem auto;
+}
+#imagePreview {
+  max-width: 220px;
+  max-height: 220px;
+  width: auto;
+  height: auto;
+  border-radius: 0.5rem;
+  border: 2px solid #424242;
+}
+
+/* Quick Suggestions */
+.quick-suggestions {
+  margin-top: 1.5rem;
+}
+.suggestions-title {
+  color: #FFD700;
+  font-size: 1.1rem;
+  text-align: left;
+  margin-bottom: 0.75rem;
+}
+.suggestions-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+}
+.quick-suggestion-btn {
+  background-color: #424242;
+  color: #FFD700;
+  font-weight: normal;
+  border: 1px solid #555;
+  padding: 0.6rem;
+}
+.quick-suggestion-btn:hover {
+  background-color: #555;
+}
+
+/* Manual Search */
+.manual-search-container {
+  margin-top: 1.5rem;
+}
+
+/* Logout Button */
+.btn-logout {
+  background-color: #B71C1C; /* Muted Red */
+  margin-top: 1.5rem;
+}
+.btn-logout:hover {
+  background-color: #D32F2F;
+}
+
+#nutritionInfo {
+  margin-top: 1rem;
+}
+
+/* NEW: Error Message Style */
+.error-message {
+  color: #ff7043; /* Using the same red-orange for consistency */
+  font-weight: normal;
+}

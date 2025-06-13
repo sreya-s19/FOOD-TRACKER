@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Food Scanner</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="container">
+    <h1><span class="h1-icon">🍽️</span> Food Tracker</h1>
+
+    <!-- Auth Section -->
+    <div id="auth-container">
+      <input type="email" id="email" placeholder="Email" required />
+      <input type="password" id="password" placeholder="Password" required />
+      <button onclick="register()">Sign Up</button>
+      <button onclick="login()">Log In</button>
+      <p id="status"></p>
+    </div>
+
+    <!-- Profile Form after login -->
+    <div id="profile-form" style="display:none;">
+      <input type="text" id="name" placeholder="Name" />
+      <input type="number" id="height" placeholder="Height (cm)" />
+      <input type="number" id="weight" placeholder="Weight (kg)" />
+      <input type="number" id="targetWeight" placeholder="Target Weight (kg)" />
+      <input type="number" id="age" placeholder="Age" />
+      <select id="gender">
+        <option value="">Select gender</option>
+        <option value="Male">Male</option>
+        <option value="Female">Female</option>
+        <option value="Prefer not to say">Prefer not to say</option>
+      </select>
+      <button onclick="submitProfile()">Submit Profile</button>
+    </div>
+
+    <!-- Scanner Section -->
+    <div id="scanner-container" style="display:none;">
+      
+      <!-- File Input Section -->
+      <div class="file-input-container">
+        <input type="file" id="imageInput" accept="image/*">
+        <label for="imageInput" class="btn-file">Choose File</label>
+        <span id="file-chosen-text">No file chosen</span>
+      </div>
+
+      <!-- Image Preview Section -->
+      <div id="imagePreviewContainer" style="display:none;">
+          <img id="imagePreview" src="#" alt="Image Preview"/>
+      </div>
+      
+      <button onclick="uploadImage()">Analyze</button>
+
+      <div id="result">
+        <p class="info-text">
+          <span class="camera-icon">📷</span> Upload an image to analyze or search manually below
+        </p>
+      </div>
+
+      <!-- Quick Suggestions -->
+      <div class="quick-suggestions">
+          <h3 class="suggestions-title">
+              <span class="lightbulb-icon">💡</span> Quick suggestions:
+          </h3>
+          <div class="suggestions-grid">
+              <button class="quick-suggestion-btn" onclick="quickSearch('Pizza')">Pizza</button>
+              <button class="quick-suggestion-btn" onclick="quickSearch('Burger')">Burger</button>
+              <button class="quick-suggestion-btn" onclick="quickSearch('Chicken')">Chicken</button>
+              <button class="quick-suggestion-btn" onclick="quickSearch('Rice')">Rice</button>
+              <button class="quick-suggestion-btn" onclick="quickSearch('Apple')">Apple</button>
+              <button class="quick-suggestion-btn" onclick="quickSearch('Salad')">Salad</button>
+          </div>
+      </div>
+
+      <!-- Manual Search -->
+      <div class="manual-search-container">
+        <input type="text" id="manualSearchInput" placeholder="Search for food manually (e.g., 'chicken breast', 'pizza')">
+        <button onclick="manualSearch()">Search Nutrition</button>
+      </div>
+      
+      <div id="nutritionInfo"></div>
+
+      <button onclick="logout()" class="btn-logout">Logout</button>
+    </div>
+  </div>
+
+  <!-- Firebase SDKs -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import {
+      getAuth,
+      onAuthStateChanged,
+      createUserWithEmailAndPassword,
+      signInWithEmailAndPassword,
+      signOut
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import {
+      getFirestore,
+      doc,
+      setDoc,
+      getDoc,
+      serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "YOUR ID",
+      authDomain: "YOUR ID",
+      projectId: "YOUR ID",
+      storageBucket: "YOUR ID",
+      messagingSenderId: "YOUR ID",
+      appId: "YOUR ID",
+      measurementId: "YOUR ID"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    
+    // Make Firebase available globally
+    window.auth = auth;
+    window.db = db;
+    window.serverTimestamp = serverTimestamp;
+    window.doc = doc;
+    window.setDoc = setDoc;
+    window.getDoc = getDoc;
+    window.createUserWithEmailAndPassword = createUserWithEmailAndPassword;
+    window.signInWithEmailAndPassword = signInWithEmailAndPassword;
+    window.signOut = signOut;
+
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+        if (userDoc.exists() && userDoc.data().name) {
+          document.getElementById("auth-container").style.display = "none";
+          document.getElementById("profile-form").style.display = "none";
+          document.getElementById("scanner-container").style.display = "block";
+        } else {
+          document.getElementById("auth-container").style.display = "none";
+          document.getElementById("profile-form").style.display = "block";
+        }
+      } else {
+        document.getElementById("auth-container").style.display = "block";
+        document.getElementById("scanner-container").style.display = "none";
+        document.getElementById("profile-form").style.display = "none";
+        document.getElementById("status").innerText = "";
+      }
+    });
+  </script>
+
+  <script>
+    // Auth & Profile functions
+    async function register() {
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value.trim();
+      if (!email || !password) return alert("Email and password are required.");
+      try {
+        document.getElementById("status").innerText = "Creating account...";
+        await window.createUserWithEmailAndPassword(window.auth, email, password);
+        document.getElementById("status").innerText = "✅ Registered! Please complete your profile.";
+      } catch (error) {
+        document.getElementById("status").innerText = `❌ ${error.message}`;
+      }
+    }
+    async function login() {
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value.trim();
+      if (!email || !password) return alert("Email and password are required.");
+      try {
+        document.getElementById("status").innerText = "Logging in...";
+        await window.signInWithEmailAndPassword(window.auth, email, password);
+        document.getElementById("status").innerText = "✅ Logged in!";
+      } catch (error) {
+        document.getElementById("status").innerText = `❌ ${error.message}`;
+      }
+    }
+    async function submitProfile() {
+      const user = window.auth.currentUser;
+      if (!user) return;
+      const name = document.getElementById("name").value.trim();
+      const height = document.getElementById("height").value.trim();
+      const weight = document.getElementById("weight").value.trim();
+      const targetWeight = document.getElementById("targetWeight").value.trim();
+      const age = document.getElementById("age").value.trim();
+      const gender = document.getElementById("gender").value;
+      if (!name || !height || !weight || !targetWeight || !age || !gender) return alert("Please fill in all profile fields.");
+      try {
+        document.getElementById("status").innerText = "Saving profile...";
+        await window.setDoc(window.doc(window.db, "users", user.uid), {
+          email: user.email, name, height, weight, targetWeight, age, gender,
+          createdAt: window.serverTimestamp()
+        });
+        document.getElementById("profile-form").style.display = "none";
+        document.getElementById("scanner-container").style.display = "block";
+        document.getElementById("status").innerText = "✅ Profile completed!";
+      } catch (error) {
+        document.getElementById("status").innerText = `❌ ${error.message}`;
+      }
+    }
+    async function logout() {
+      try {
+        await window.signOut(window.auth);
+      } catch (error) {
+        console.error("Logout error:", error);
+        alert(`Logout failed: ${error.message}`);
+      }
+    }
+    window.register = register;
+    window.login = login;
+    window.submitProfile = submitProfile;
+    window.logout = logout;
+  </script>
+
+  <script>
+    // ========== API & App Logic ==========
+    const PAT = 'YOUR ID';
+    const USER_ID = 'YOUR ID';
+    const APP_ID = 'YOUR ID';
+    const MODEL_ID = 'YOUR ID';
+    const MODEL_VERSION_ID = 'YOUR ID';
+    const NUTRITIONIX_APP_ID = 'YOUR ID';
+    const NUTRITIONIX_API_KEY = 'YOUR ID';
+    
+    // Image Preview Logic
+    const imageInput = document.getElementById('imageInput');
+    const fileChosenText = document.getElementById('file-chosen-text');
+    const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+    const imagePreview = document.getElementById('imagePreview');
+
+    imageInput.addEventListener('change', function() {
+        const file = this.files[0];
+        if (file) {
+            fileChosenText.textContent = file.name;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                imagePreview.src = e.target.result;
+                imagePreviewContainer.style.display = 'block';
+            }
+            reader.readAsDataURL(file);
+        } else {
+            fileChosenText.textContent = 'No file chosen';
+            imagePreviewContainer.style.display = 'none';
+        }
+    });
+
+    // Upload image and analyze with Clarifai
+    function uploadImage() {
+      const file = document.getElementById('imageInput').files[0];
+      if (!file) {
+        alert("Please choose an image file first.");
+        return;
+      }
+      
+      document.getElementById("result").innerHTML = "🔄 Analyzing image...";
+      document.getElementById('nutritionInfo').innerHTML = '';
+
+      const reader = new FileReader();
+      reader.onloadend = function () {
+        const base64Image = reader.result.split(',')[1];
+        const requestData = {
+          user_app_id: { user_id: USER_ID, app_id: APP_ID },
+          inputs: [{ data: { image: { base64: base64Image } } }]
+        };
+
+        // ... inside uploadImage function ...
+        const requestOptions = {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          // Send only the image data, our server will handle the rest
+          body: JSON.stringify({ image: base64Image }) 
+        };
+
+        // NEW URL: Point to our own backend server
+        fetch(`http://localhost:3000/analyze`, requestOptions)
+// ...
+          .then(response => {
+              if (!response.ok) {
+                  return response.json().then(errorData => {
+                      throw new Error(`HTTP error ${response.status}: ${errorData.status.description || response.statusText}`);
+                  }).catch(() => {
+                      throw new Error(`HTTP error ${response.status}: ${response.statusText}`);
+                  });
+              }
+              return response.json();
+          })
+          .then(result => {
+            if (result.status && result.status.code !== 10000) {
+                throw new Error(`Clarifai API Error: ${result.status.description}`);
+            }
+
+            if (result.outputs && result.outputs[0]?.data?.concepts?.length > 0) {
+              const concepts = result.outputs[0].data.concepts;
+              const topPrediction = concepts[0].name;
+              const confidence = (concepts[0].value * 100).toFixed(2);
+              document.getElementById("result").innerHTML =
+                `🍽️ <strong>${topPrediction}</strong> detected with <strong>${confidence}%</strong> confidence.`;
+
+              if (confidence < 70) {
+                document.getElementById("result").innerHTML += `<p class="info-text">Confidence is low. For better results, search manually.</p>`;
+              } else {
+                fetchNutrition(topPrediction);
+              }
+            } else {
+              throw new Error("No food items detected in the image.");
+            }
+          })
+          .catch(error => {
+            console.error('Analysis Error:', error);
+            // MODIFIED: More helpful error message
+            let userMessage = error.message;
+            if (userMessage.includes('Failed to fetch')) {
+                userMessage = 'Failed to fetch. This may be due to a network issue, an ad-blocker, or a browser security policy (CORS).';
+            }
+            document.getElementById("result").innerHTML = `<span class="error-message">❌ Analysis Failed: ${userMessage}</span>`;
+          });
+      };
+      
+      reader.onerror = () => {
+        document.getElementById("result").innerHTML = `<span class="error-message">❌ Error reading the image file.</span>`;
+      };
+
+      reader.readAsDataURL(file);
+    }
+
+    // Fetch nutrition info from Nutritionix API
+    function fetchNutrition(foodName) {
+      if (!foodName) return;
+      document.getElementById('nutritionInfo').innerHTML = "🔄 Fetching nutrition information...";
+      const url = `https://trackapi.nutritionix.com/v2/natural/nutrients`;
+      const data = { query: foodName, timezone: "US/Eastern" };
+
+      fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-app-id': NUTRITIONIX_APP_ID, 'x-app-key': NUTRITIONIX_API_KEY },
+        body: JSON.stringify(data)
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.foods && data.foods.length > 0) {
+            const food = data.foods[0];
+            document.getElementById('nutritionInfo').innerHTML = `
+              <h3>Nutrition Information for <em>${foodName}</em>:</h3>
+              <ul style="list-style:none; padding-left:0; color: #FFD700; text-align:left;">
+                <li>Calories: ${food.nf_calories || 0} kcal</li>
+                <li>Protein: ${food.nf_protein || 0} g</li>
+                <li>Fat: ${food.nf_total_fat || 0} g</li>
+                <li>Carbohydrates: ${food.nf_total_carbohydrate || 0} g</li>
+                <li>Serving Size: ${food.serving_qty} ${food.serving_unit}</li>
+              </ul>
+            `;
+          } else {
+            throw new Error("No nutrition data found for this item.");
+          }
+        })
+        .catch(err => {
+          console.error('Nutritionix API error:', err);
+          document.getElementById('nutritionInfo').innerHTML = `<span class="error-message">❌ Error fetching nutrition: ${err.message}</span>`;
+        });
+    }
+
+    // Manual search triggered by button click
+    function manualSearch() {
+      const input = document.getElementById('manualSearchInput').value.trim();
+      if (input) {
+        document.getElementById("result").innerHTML = `🔍 Searching for: <strong>${input}</strong>`;
+        document.getElementById('imagePreviewContainer').style.display = 'none';
+        fetchNutrition(input);
+      } else {
+        alert('Please enter a food name to search.');
+      }
+    }
+    
+    // Quick search for suggestion buttons
+    function quickSearch(foodName) {
+        document.getElementById("result").innerHTML = `🔍 Searching for: <strong>${foodName}</strong>`;
+        document.getElementById('imagePreviewContainer').style.display = 'none';
+        document.getElementById('manualSearchInput').value = foodName;
+        fetchNutrition(foodName);
+    }
+
+    // Expose functions to global scope
+    window.uploadImage = uploadImage;
+    window.manualSearch = manualSearch;
+    window.quickSearch = quickSearch;
+  </script>
+</body>
+</html>
